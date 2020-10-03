@@ -89,7 +89,6 @@ public class LinkedQueue<E> implements Queue<E> {
 
         @Override
         public E next() {
-            return null;
         }
 
         @Override
