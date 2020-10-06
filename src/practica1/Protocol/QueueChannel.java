@@ -2,23 +2,24 @@ package practica1.Protocol;
 
 import ast.protocols.tcp.TCPSegment;
 import utils.Channel;
+import practica1.CircularQ.CircularQueue;
 
 public class QueueChannel implements Channel {
 
-    //Completar...
+    private CircularQueue<TCPSegment> dades;
 
     public QueueChannel(int N) {
-        throw new RuntimeException("Aquest mètode s'ha de completar...");
+        this.dades = new CircularQueue(N);
     }
 
     @Override
     public void send(TCPSegment s) {
-        throw new RuntimeException("Aquest mètode s'ha de completar...");
+        this.dades.put(s);
     }
 
     @Override
     public TCPSegment receive() {
-        throw new RuntimeException("Aquest mètode s'ha de completar...");
+        return this.dades.get();
     }
 
     @Override
