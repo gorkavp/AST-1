@@ -27,7 +27,7 @@ public class LinkedQueue<E> implements Queue<E> {
     @Override
     public boolean hasFree(int n) {
         if (n<0) throw new IllegalArgumentException("El valor ha de ser més gran o igual a 0.");
-        return (n <= this.N);
+        return (n <= 0);
     }
 
     @Override
@@ -82,14 +82,26 @@ public class LinkedQueue<E> implements Queue<E> {
 
     class MyIterator implements Iterator {
 
+        private int elem;
+
+        public MyIterator() {
+            this.elem = 0;
+        }
+        
         @Override
         public boolean hasNext() {
-            
+            return(this.elem < LinkedQueue.this.N);
         }
 
         @Override
         public E next() {
-            return null;
+            
+            Node<E> n = new Node();
+            n = LinkedQueue.this.primer;
+            for (int i = 0; i < this.elem; i++)
+                n = n.getNext();
+            this.elem++;
+            return n.getValue();
         }
 
         @Override

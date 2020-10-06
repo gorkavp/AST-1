@@ -86,22 +86,18 @@ public class CircularQueue<E> implements Queue<E> {
     class MyIterator implements Iterator {
         
         private int elem;
-        private int P = ini + numElem;
+        private final int P;
 
         
         public MyIterator() {
             this.elem = ini;
+            this.P = CircularQueue.this.ini + CircularQueue.this.numElem;
         }
         
         @Override
         public boolean hasNext() {
             
-            if (P != 0) {
-                if (elem < P)
-                    return true;
-            } else if(elem < N)
-                return true;
-            return false;
+            return elem < P && P != 0;
         }
 
         @Override
