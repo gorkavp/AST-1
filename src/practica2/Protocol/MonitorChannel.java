@@ -10,8 +10,8 @@ public class MonitorChannel implements Channel {
 
     protected CircularQueue<TCPSegment> cua;
     protected final ReentrantLock lock = new ReentrantLock();
-    protected final Condition ple = lock.newCondition();
-    protected final Condition buit = lock.newCondition();
+    protected final Condition p = lock.newCondition();
+    protected final Condition b = lock.newCondition();
 
     public MonitorChannel(int N) {
         
@@ -24,10 +24,10 @@ public class MonitorChannel implements Channel {
         this.lock.lock();
         try{
             while(this.cua.full()){
-                this.ple.awaitUninterruptibly();
+                this.p.awaitUninterruptibly();
             }
             this.cua.put(seg);
-            this.buit.signal();
+            this.b.signal();
         } finally {
             this.lock.unlock();
         }
@@ -39,10 +39,10 @@ public class MonitorChannel implements Channel {
         this.lock.lock();
         try{
             while(cua.empty()){
-                this.buit.awaitUninterruptibly();
+                this.b.awaitUninterruptibly();
             }
             TCPSegment segment = this.cua.get();
-            this.ple.signal();
+            this.p.signal();
             return segment;
         } finally {
             this.lock.unlock();
