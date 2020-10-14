@@ -8,20 +8,45 @@ import utils.Channel;
 
 public class MonitorChannel implements Channel {
 
-    //Completar...
+    protected CircularQueue<TCPSegment> cua;
+    protected final ReentrantLock lock = new ReentrantLock();
+    protected final Condition ple = lock.newCondition();
+    protected final Condition buit = lock.newCondition();
 
     public MonitorChannel(int N) {
-        throw new RuntimeException("Aquest mètode s'ha de completar...");
+        
+        cua = new CircularQueue(N);
     }
 
     @Override
     public void send(TCPSegment seg) {
-        throw new RuntimeException("Aquest mètode s'ha de completar...");
+        
+        this.lock.lock();
+        try{
+            while(this.cua.full()){
+                this.ple.awaitUninterruptibly();
+            }
+            this.cua.put(seg);
+            this.buit.signal();
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     @Override
     public TCPSegment receive() {
-        throw new RuntimeException("Aquest mètode s'ha de completar...");
+        
+        this.lock.lock();
+        try{
+            while(cua.empty()){
+                this.buit.awaitUninterruptibly();
+            }
+            TCPSegment segment = this.cua.get();
+            this.ple.signal();
+            return segment;
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     @Override

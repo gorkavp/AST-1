@@ -10,7 +10,12 @@ public class TestProtocol {
 
         Sender sender = new Sender(channel, 5, 2);
         Receiver receiver = new Receiver(channel, 10);
-        //Completar...
+        
+        sender.start();
+        receiver.start();
+        
+        sender.join();
+        receiver.join();
         
         System.out.println("\nSimulation end.");
     }
