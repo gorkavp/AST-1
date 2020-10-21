@@ -27,9 +27,14 @@ public class TSocketRecv extends TSocketBase {
      * Places received data in buf Veure descripció detallada en Exercici 3!!
      */
     public int receiveData(byte[] buf, int offset, int length) {
+        
         lock.lock();
-        try {
-            throw new RuntimeException("Aquest mètode s'ha de completar...");
+        int b = 0;
+        try {     
+            while(!rcvQueue.empty()) {
+                b = b +  consumeSegment(buf, offset + b, length - b);
+            }
+            return b;
         } finally {
             lock.unlock();
         }
@@ -62,7 +67,9 @@ public class TSocketRecv extends TSocketBase {
     public void processReceivedSegment(TCPSegment rseg) {
         lock.lock();
         try {
-            throw new RuntimeException("Aquest mètode s'ha de completar...");
+            if(!this.rcvQueue.full()) {
+                this.rcvQueue.put(rseg);
+            }
         } finally {
             lock.unlock();
         }
