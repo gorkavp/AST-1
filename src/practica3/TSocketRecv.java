@@ -27,16 +27,21 @@ public class TSocketRecv extends TSocketBase {
      * Places received data in buf Veure descripció detallada en Exercici 3!!
      */
     public int receiveData(byte[] buf, int offset, int length) {
-        
-        lock.lock();
-        int b = 0;
-        try {     
-            while(!rcvQueue.empty()) {
-                b = b +  consumeSegment(buf, offset + b, length - b);
+
+        this.lock.lock();
+        int dades = 0;
+        try {
+
+            while (rcvQueue.empty()) {
+                this.appCV.awaitUninterruptibly();
             }
-            return b;
+
+            while (!rcvQueue.empty() && dades < length) {
+                dades = dades + consumeSegment(buf, offset + dades, length - dades);
+            }
+            return dades;
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 
@@ -65,13 +70,14 @@ public class TSocketRecv extends TSocketBase {
      * @param rseg segment of received packet
      */
     public void processReceivedSegment(TCPSegment rseg) {
-        lock.lock();
+        this.lock.lock();
         try {
-            if(!this.rcvQueue.full()) {
+            if (!this.rcvQueue.full()) {
                 this.rcvQueue.put(rseg);
+                this.appCV.signalAll();
             }
         } finally {
-            lock.unlock();
+            this.lock.unlock();
         }
     }
 

@@ -14,14 +14,19 @@ public class TSocketSend extends TSocketBase {
 
     public void sendData(byte[] data, int offset, int length) {
 
+        this.lock.lock();
         TCPSegment segment = new TCPSegment();
-        for (int i = 0; i < length; i += this.sndMSS) {
-            if (length - i < this.sndMSS) {
-                segment = this.segmentize(data, offset + i, length - i);
-            } else {
-                segment = this.segmentize(data, offset + i, this.sndMSS);
+        try {
+            for (int i = 0; i < length; i = i + this.sndMSS) {
+                if (length - i < this.sndMSS) {
+                    segment = this.segmentize(data, offset + i, length - i);
+                } else {
+                    segment = this.segmentize(data, offset + i, this.sndMSS);
+                }
+                this.sendSegment(segment);
             }
-            this.sendSegment(segment);
+        } finally {
+            this.lock.unlock();
         }
     }
 

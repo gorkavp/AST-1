@@ -4,10 +4,7 @@ import ast.protocols.tcp.TCPSegment;
 
 public class MonitorChannel extends practica2.Protocol.MonitorChannel {
 
-   
     private double lossRatio;
-
-   
 
     public MonitorChannel(int N, double lossRatio) {
         super(N);
@@ -16,7 +13,18 @@ public class MonitorChannel extends practica2.Protocol.MonitorChannel {
 
     @Override
     public void send(TCPSegment seg) {
-        throw new RuntimeException("Aquest mètode s'ha de completar...");
+
+        this.lock.lock();
+        try {
+            if (Math.random() < lossRatio) {
+                System.out.println("Paquet perdut");
+                return;
+            } else {
+                super.send(seg);
+            }
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     @Override

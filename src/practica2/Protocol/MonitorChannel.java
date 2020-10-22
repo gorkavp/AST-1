@@ -8,10 +8,10 @@ import utils.Channel;
 
 public class MonitorChannel implements Channel {
 
-    private CircularQueue<TCPSegment> cua;
-    private final ReentrantLock lock = new ReentrantLock();
-    private final Condition p = lock.newCondition();
-    private final Condition b = lock.newCondition();
+    protected CircularQueue<TCPSegment> cua;
+    protected final ReentrantLock lock = new ReentrantLock();
+    protected final Condition p = lock.newCondition();
+    protected final Condition b = lock.newCondition();
 
     public MonitorChannel(int N) {
         
