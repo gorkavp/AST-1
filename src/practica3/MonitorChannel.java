@@ -16,7 +16,8 @@ public class MonitorChannel extends practica2.Protocol.MonitorChannel {
 
         this.lock.lock();
         try {
-            if (Math.random() < lossRatio) {
+            double m = Math.random();
+            if (m < this.lossRatio) {
                 System.out.println("Paquet perdut");
                 return;
             } else {

@@ -30,7 +30,8 @@ class Sender implements Runnable {
     }
 
     public Sender(Channel channel) {
-        this(channel, 20, 50, 100);
+        this(channel, 80, 20, 0); //Execució amb pèrdua de dades
+        //this(channel, 20, 50, 100); Execució normal
     }
 
     public void run() {
@@ -68,7 +69,8 @@ class Receiver implements Runnable {
     }
 
     public Receiver(Channel channel) {
-        this(channel, 25, 10);
+        this(channel, 20, 0); //Execució amb pèrdua de dades
+        //this(channel, 25, 10); Execució normal
     }
 
     public void run() {
