@@ -18,12 +18,30 @@ public class TSocketSend extends TSocketBase {
     }
 
     public void sendData(byte[] data, int offset, int length) {
-        //...
+
+        this.lk.lock();
+        TCPSegment segment = new TCPSegment();
+        try {
+            for (int i = 0; i < length; i = i + this.sndMSS) {
+                if (length - i < this.sndMSS) {
+                    segment = this.segmentize(data, offset + i, length - i);
+                } else {
+                    segment = this.segmentize(data, offset + i, this.sndMSS);
+                }
+                this.sendSegment(segment);
+            }
+        } finally {
+            this.lk.unlock();
+        }
     }
 
     protected TCPSegment segmentize(byte[] data, int offset, int length) {
-        TCPSegment seg = new TCPSegment();
-        //...
+        TCPSegment seg = new TCPSegment();   
+        byte[] missatge = new byte[length];
+        System.arraycopy(data, offset, missatge, 0, length);
+        seg.setData(missatge);
+        seg.setDestinationPort(this.remotePort);
+        seg.setSourcePort(this.localPort);
         return seg;
     }
 

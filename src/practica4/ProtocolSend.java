@@ -16,9 +16,12 @@ public class ProtocolSend extends ProtocolBase {
         lk.lock();
         try {
 
-            //...
-            //treu aquesta sentencia en completar el codi:
-            return null;
+            TSocketSend socket = new TSocketSend(ProtocolSend.this, localPort, remotePort);
+            System.out.println("TSocketSend creat amb port local = " + localPort + " i port remot = " + remotePort);
+            if (!sockets.contains(socket)) {
+                sockets.add(socket);
+            }
+            return socket;
 
         } finally {
             lk.unlock();

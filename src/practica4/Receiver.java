@@ -23,8 +23,10 @@ public class Receiver implements Runnable {
     public void run() {
         try {
             byte n = 0;
+            int dades = 0;
             byte[] buf = new byte[recvBuf];
             while (true) {
+                Thread.sleep(this.recvInterval);
                 int r = input.receiveData(buf, 0, buf.length);
                 // check received data stamps
                 for (int j = 0; j < r; j++) {
@@ -34,6 +36,12 @@ public class Receiver implements Runnable {
                     n = (byte) (n + 1);
                 }
                 log.info("Receiver: received %d bytes", r);
+                dades = dades + r;
+                
+                log.info("Dades total rebudes: %d bytes" , dades);
+                //System.out.println("Dades total rebudes: " + dades + " bytes");
+                
+                
                 Thread.sleep(recvInterval);
             }
         } catch (Exception e) {

@@ -18,7 +18,7 @@ public class Sender implements Runnable {
     }
 
     public Sender(TSocketSend pcb) {
-        this(pcb, 20, 500, 100);
+        this(pcb, 20, 500, 200);
     }
 
     public void run() {

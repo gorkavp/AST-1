@@ -20,10 +20,12 @@ public class ProtocolRecv extends ProtocolBase {
         lk.lock();
         try {
 
-            //...
-            //treu aquesta sentencia en completar el codi:
-            return null;
-
+            TSocketRecv socket = new TSocketRecv(ProtocolRecv.this, localPort, remotePort);
+            System.out.println("TSocketRecv creat amb port local = " + localPort + " i port remot = " + remotePort);
+            if (!this.sockets.contains(socket)) {
+                this.sockets.add(socket);
+            }
+            return socket;
         } finally {
             lk.unlock();
         }
@@ -31,14 +33,23 @@ public class ProtocolRecv extends ProtocolBase {
 
     protected void ipInput(TCPSegment segment) {
 
-        //...
+        TSocketRecv socket = getMatchingTSocket(segment.getDestinationPort(),segment.getSourcePort());
+        if (socket != null) {
+            socket.processReceivedSegment(segment);
+        } else {
+            System.out.println("[ProtocolRecv] segment perdut: " + segment);
+        }
     }
 
     protected TSocketRecv getMatchingTSocket(int localPort, int remotePort) {
+        
         lk.lock();
         try {
-
-            //...
+            for (TSocketRecv s: sockets) {
+                if (s.remotePort == remotePort && s.localPort == localPort) {
+                    return s;
+                }
+            }
             return null;
         } finally {
             lk.unlock();

@@ -30,7 +30,7 @@ public class MonitorChannel extends practica2.Protocol.MonitorChannel {
 
     @Override
     public int getMMS() {
-        return 5;
+        return 100;
     }
 
 }
