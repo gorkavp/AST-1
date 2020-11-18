@@ -37,12 +37,7 @@ public class Receiver implements Runnable {
                 }
                 log.info("Receiver: received %d bytes", r);
                 dades = dades + r;
-                
                 log.info("Dades total rebudes: %d bytes" , dades);
-                //System.out.println("Dades total rebudes: " + dades + " bytes");
-                
-                
-                Thread.sleep(recvInterval);
             }
         } catch (Exception e) {
             log.error("Excepcio a Receiver: %s", e);
