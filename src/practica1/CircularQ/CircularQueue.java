@@ -8,6 +8,7 @@ public class CircularQueue<E> implements Queue<E> {
     private final E[] queue;
     private final int N;
     private int numElem, ini;
+    private final int M = 0;
 
     public CircularQueue(int N) {
         this.N = N;
