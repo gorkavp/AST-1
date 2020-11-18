@@ -29,7 +29,7 @@ public class Protocol {
         lk.lock();
         try {
             // A completar per l'estudiant (veieu practica 4):
-            //...
+            //... hola que tal
             throw new RuntimeException("Aquest mètode s'ha de completar...");
         } finally {
             lk.unlock();
