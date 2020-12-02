@@ -25,6 +25,7 @@ public class Sender implements Runnable {
         try {
             byte n = 0;
             byte[] buf = new byte[sendSize];
+            log.info("Daddes total per enviar: " + this.sendNum*this.sendSize + " bytes");
             for (int i = 0; i < sendNum; i++) {
                 Thread.sleep(sendInterval);
                 // stamp data to send

@@ -23,6 +23,7 @@ public class Receiver implements Runnable {
     public void run() {
         try {
             byte n = 0;
+            int b = 0;
             byte[] buf = new byte[recvBuf];
             while (true) {
                 int r = input.receiveData(buf, 0, buf.length);
@@ -33,9 +34,12 @@ public class Receiver implements Runnable {
                     }
                     n = (byte) (n + 1);
                 }
+                b += r;
                 log.info("Receiver: received %d bytes", r);
+                log.info("Dades total rebudes: " + b + " bytes");
                 Thread.sleep(recvInterval);
             }
+
         } catch (Exception e) {
             log.error("Receiver exception: %s", e);
             e.printStackTrace(System.err);

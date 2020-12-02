@@ -28,26 +28,36 @@ public class Protocol {
     public TSocket openWith(int localPort, int remotePort) {
         lk.lock();
         try {
-            // A completar per l'estudiant (veieu practica 4):
-            //...
-            throw new RuntimeException("Aquest mètode s'ha de completar...");
+
+            TSocket socket = new TSocket(Protocol.this, localPort, remotePort);
+            System.out.println("TSocketRecv creat amb port local = " + localPort + " i port remot = " + remotePort);
+            if (!this.sockets.contains(socket)) {
+                this.sockets.add(socket);
+            }
+            return socket;
         } finally {
             lk.unlock();
         }
     }
 
     protected void ipInput(TCPSegment segment) {
-        // A completar per l'estudiant (veieu practica 4):
-        //...
-        throw new RuntimeException("Aquest mètode s'ha de completar...");
+        TSocket socket = getMatchingTSocket(segment.getDestinationPort(), segment.getSourcePort());
+        if (socket != null) {
+            socket.processReceivedSegment(segment);
+        } else {
+            System.out.println("[ProtocolRecv] segment perdut: " + segment);
+        }
     }
 
     protected TSocket getMatchingTSocket(int localPort, int remotePort) {
         lk.lock();
         try {
-            // A completar per l'estudiant (veieu practica 4):
-            //...
-            throw new RuntimeException("Aquest mètode s'ha de completar...");
+            for (TSocket s : sockets) {
+                if (s.remotePort == remotePort && s.localPort == localPort) {
+                    return s;
+                }
+            }
+            return null;
         } finally {
             lk.unlock();
         }
