@@ -57,30 +57,44 @@ public class TSocket {
 
     // -------------  SENDER PART  ---------------
     public void sendData(byte[] data, int offset, int length) {
-        lk.lock();
-        try {
-            // A completar per l'estudiant:
-            //...
-            // for each segment to send
-            // wait until the sent segment is acknowledged
-            // create a data segment 
-            // Taking into account if you are at the zero window case or not
-            // and send it
-            // Remember to start the timer
 
+        // for each segment to send
+        // wait until the sent segment is acknowledged
+        // create a data segment 
+        // Taking into account if you are at the zero window case or not
+        // and send it
+        // Remember to start the timer
+        this.lk.lock();
+        TCPSegment segment = new TCPSegment();
+        segment.setAck(false);
+        try {
+            for (int i = 0; i < length; i = i + this.sndMSS) {
+                segment = this.segmentize(data, offset + i, Math.min(this.sndMSS, length - i));
+                this.sendSegment(segment);
+                System.out.println("Segment enviat");
+                this.segmentAcknowledged = false;
+                while (!this.segmentAcknowledged) {
+                    this.emissor.awaitUninterruptibly();
+                }
+
+            }
         } finally {
-            lk.unlock();
+            this.lk.unlock();
         }
     }
 
     protected TCPSegment segmentize(byte[] data, int offset, int length) {
-        // A completar per l'estudiant (veieu practica 5):
-        //...
-        throw new RuntimeException("Aquest mètode s'ha de completar...");
+        TCPSegment seg = new TCPSegment();
+        byte[] missatge = new byte[length];
+        System.arraycopy(data, offset, missatge, 0, length);
+        seg.setData(missatge);
+        seg.setDestinationPort(this.remotePort);
+        seg.setSourcePort(this.localPort);
+        return seg;
     }
 
     protected void sendSegment(TCPSegment segment) {
-        // A completar per l'estudiant (veieu practica 5):
+        proto.net.send(segment);
     }
 
     protected void timeout() {
@@ -122,15 +136,29 @@ public class TSocket {
      * Places received data in buf
      */
     public int receiveData(byte[] buf, int offset, int maxlen) {
-        lk.lock();
+
+        // A completar per l'estudiant:
+        //...
+        // wait until there is a received segment
+        // get data from the received segment
+        this.lk.lock();
+        int dades = 0;
         try {
-            // A completar per l'estudiant:
-            //...
-            // wait until there is a received segment
-            // get data from the received segment
-            throw new RuntimeException("Aquest mètode s'ha de completar...");
+
+            while (this.rcvQueue.empty()) {
+                this.receptor.awaitUninterruptibly();
+            }
+
+            while (!this.rcvQueue.empty() && dades < maxlen) {
+                dades = dades + consumeSegment(buf, offset + dades, maxlen - dades);
+            }
+            if (!this.rcvQueue.full()) {
+                this.sendAck();
+                this.segmentAcknowledged = false;
+            }
+            return dades;
         } finally {
-            lk.unlock();
+            this.lk.unlock();
         }
     }
 
@@ -154,8 +182,14 @@ public class TSocket {
     }
 
     protected void sendAck() {
-        // A completar per l'estudiant:
-        //...
+        TCPSegment ack = new TCPSegment();
+        ack.setAckNum(this.rcvNxt);
+        ack.setWindow(this.rcvQueue.free());
+        ack.setSourcePort(this.localPort);
+        ack.setDestinationPort(this.remotePort);
+        ack.setAck(true);
+        sendSegment(ack);
+        System.out.println("ACK enviat");
     }
 
     // -------------  SEGMENT ARRIVAL  -------------
@@ -167,19 +201,24 @@ public class TSocket {
     protected void processReceivedSegment(TCPSegment rseg) {
         lk.lock();
         try {
-            // Check ACK
+            // Check 
             if (rseg.isAck()) {
-                // A completar per l'estudiant:
-                //...
+
+                this.rcvWindow = rseg.getWindow();
+                this.segmentAcknowledged = true;
+                this.emissor.signal();
 
             } else if (rseg.getDataLength() > 0) {
                 // Process segment data
                 if (rcvQueue.full()) {
-                    //A completar per l'estudiant:
-                    //...
+                    System.out.println("La cua està plena");
+                    return;
+                } else {
+                    this.rcvQueue.put(rseg);
+                    this.receptor.signal();
                 }
-                // A completar per l'estudiant:
-                //...
+            } else {
+                this.segmentAcknowledged = false;
             }
         } finally {
             lk.unlock();
