@@ -34,13 +34,17 @@ public class TSocket {
     protected int rcvNxt;
 
     //Other atributes (sender or receiver)
-    //...
+    protected Condition emissor;
+    protected Condition receptor;
+
     /**
      * Create an endpoint bound to the given TCP ports.
      */
     protected TSocket(Protocol p, int localPort, int remotePort) {
         lk = new ReentrantLock();
         appCV = lk.newCondition();
+        this.emissor = lk.newCondition();
+        this.receptor = lk.newCondition();
         proto = p;
         this.localPort = localPort;
         this.remotePort = remotePort;
@@ -66,17 +70,26 @@ public class TSocket {
         // Remember to start the timer
         this.lk.lock();
         TCPSegment segment = new TCPSegment();
-        segment.setAck(false);
         try {
             for (int i = 0; i < length; i = i + this.sndMSS) {
-                segment = this.segmentize(data, offset + i, Math.min(this.sndMSS, length - i));
-                this.sendSegment(segment);
-                System.out.println("Segment enviat");
-                this.segmentAcknowledged = false;
-                while (!this.segmentAcknowledged) {
+                while (this.sndUnackedSegment != null) {
                     this.emissor.awaitUninterruptibly();
                 }
-
+                segment = this.segmentize(data, offset + i, Math.min(this.sndMSS, length - i));
+                while (this.rcvWindow == 0) {
+                    TCPSegment segmentsondeig = new TCPSegment();
+                    segmentsondeig = segment;
+                    segmentsondeig.setData(data, 0, 1);
+                    this.sndUnackedSegment = segmentsondeig;
+                    System.out.println("Emissor: finestra = " + this.rcvWindow + ", envio segment de sondeig");
+                    this.startRTO();
+                    this.emissor.awaitUninterruptibly();
+                }
+                this.sndUnackedSegment = segment;
+                segment.setSeqNum(this.sndNxt);
+                System.out.println("Emissor: segment " + this.sndNxt++ + " enviat");
+                this.sendSegment(segment);
+                this.startRTO();
             }
         } finally {
             this.lk.unlock();
@@ -90,6 +103,7 @@ public class TSocket {
         seg.setData(missatge);
         seg.setDestinationPort(this.remotePort);
         seg.setSourcePort(this.localPort);
+        seg.setAck(false);
         return seg;
     }
 
@@ -137,8 +151,6 @@ public class TSocket {
      */
     public int receiveData(byte[] buf, int offset, int maxlen) {
 
-        // A completar per l'estudiant:
-        //...
         // wait until there is a received segment
         // get data from the received segment
         this.lk.lock();
@@ -152,11 +164,8 @@ public class TSocket {
             while (!this.rcvQueue.empty() && dades < maxlen) {
                 dades = dades + consumeSegment(buf, offset + dades, maxlen - dades);
             }
-            if (!this.rcvQueue.full()) {
-                this.sendAck();
-                this.segmentAcknowledged = false;
-            }
             return dades;
+
         } finally {
             this.lk.unlock();
         }
@@ -188,8 +197,9 @@ public class TSocket {
         ack.setSourcePort(this.localPort);
         ack.setDestinationPort(this.remotePort);
         ack.setAck(true);
+        ack.setData(null, 0, 0);
+        System.out.println("Receptor: segment " + this.sndNxt++ + " rebut, ack " + ack.getAckNum() + " enviat i el receptor espera rebre el segment " + this.rcvNxt);
         sendSegment(ack);
-        System.out.println("ACK enviat");
     }
 
     // -------------  SEGMENT ARRIVAL  -------------
@@ -201,11 +211,13 @@ public class TSocket {
     protected void processReceivedSegment(TCPSegment rseg) {
         lk.lock();
         try {
-            // Check 
+
             if (rseg.isAck()) {
 
+                this.stopRTO();
                 this.rcvWindow = rseg.getWindow();
-                this.segmentAcknowledged = true;
+                this.sndUnackedSegment = null;
+                System.out.println("Emissor: ack " + rseg.getAckNum() + " rebut i el tamany de la finestra és " + this.rcvWindow);
                 this.emissor.signal();
 
             } else if (rseg.getDataLength() > 0) {
@@ -213,12 +225,12 @@ public class TSocket {
                 if (rcvQueue.full()) {
                     System.out.println("La cua està plena");
                     return;
-                } else {
+                } else if (rseg.getSeqNum() == this.rcvNxt) {
                     this.rcvQueue.put(rseg);
-                    this.receptor.signal();
+                    this.rcvNxt++;
                 }
-            } else {
-                this.segmentAcknowledged = false;
+                this.sendAck();
+                this.receptor.signal();
             }
         } finally {
             lk.unlock();
