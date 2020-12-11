@@ -75,20 +75,18 @@ public class TSocket {
                 while (this.sndUnackedSegment != null) {
                     this.emissor.awaitUninterruptibly();
                 }
-                segment = this.segmentize(data, offset + i, Math.min(this.sndMSS, length - i));
-                while (this.rcvWindow == 0) {
-                    TCPSegment segmentsondeig = new TCPSegment();
-                    segmentsondeig = segment;
-                    segmentsondeig.setData(data, 0, 1);
-                    this.sndUnackedSegment = segmentsondeig;
-                    System.out.println("Emissor: finestra = " + this.rcvWindow + ", envio segment de sondeig");
-                    this.startRTO();
-                    this.emissor.awaitUninterruptibly();
+                int dades = 1;
+                if (this.rcvWindow > 0) {
+
+                    dades = Math.min(this.sndMSS, length - i);
                 }
+                segment = this.segmentize(data, offset + i, dades);
                 this.sndUnackedSegment = segment;
                 segment.setSeqNum(this.sndNxt);
-                System.out.println("Emissor: segment " + this.sndNxt++ + " enviat");
-                this.sendSegment(segment);
+                if (this.rcvWindow > 0) {
+                    System.out.println("Emissor: segment " + this.sndNxt++ + " enviat");
+                    this.sendSegment(segment);
+                }
                 this.startRTO();
             }
         } finally {
