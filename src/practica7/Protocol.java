@@ -57,7 +57,6 @@ public class Protocol {
         } else {
             System.out.println("[ProtocolRecv] segment perdut: " + segment);
         }
-        throw new RuntimeException("Falta completar");
     }
 
     //-------------------------------------------

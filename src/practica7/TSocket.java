@@ -121,14 +121,11 @@ public class TSocket {
         try {
             remotePort = remPort;
             proto.addActiveTSocket(this);
-
             TCPSegment SYN = new TCPSegment();
             SYN.setPorts(this.localPort, this.remotePort);
             SYN.setSyn(true);
             this.sendSegment(SYN);
-
             this.state = SYN_SENT;
-
             while (this.state != ESTABLISHED) {
                 this.appCV.awaitUninterruptibly();
             }
@@ -146,7 +143,7 @@ public class TSocket {
                     FIN.setPorts(localPort, remotePort);
                     FIN.setFin(true);
                     this.sendSegment(FIN);
-                    state = FIN_WAIT;
+                    this.state = FIN_WAIT;
                     break;
                 }
                 case CLOSE_WAIT: {
