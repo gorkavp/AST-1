@@ -187,7 +187,6 @@ public class TSocket {
                         SYN.setPorts(s.localPort, s.remotePort);
                         SYN.setSyn(true);
                         s.sendSegment(SYN);
-                        this.state = ESTABLISHED;
                     }
                     break;
                 }
