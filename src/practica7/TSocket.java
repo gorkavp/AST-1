@@ -140,7 +140,7 @@ public class TSocket {
             switch (state) {
                 case ESTABLISHED: {
                     TCPSegment FIN = new TCPSegment();
-                    FIN.setPorts(localPort, remotePort);
+                    FIN.setPorts(this.localPort, this.remotePort);
                     FIN.setFin(true);
                     this.sendSegment(FIN);
                     this.state = FIN_WAIT;
@@ -148,7 +148,7 @@ public class TSocket {
                 }
                 case CLOSE_WAIT: {
                     TCPSegment FIN = new TCPSegment();
-                    FIN.setPorts(localPort, remotePort);
+                    FIN.setPorts(this.localPort, this.remotePort);
                     FIN.setFin(true);
                     this.sendSegment(FIN);
                     this.proto.removeActiveTSocket(this);
